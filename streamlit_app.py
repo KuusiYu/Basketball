@@ -4,13 +4,12 @@ import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
 
-# 检查字体路径是否正确
-font_path = 'C:/Windows/Fonts/simsun.ttc'  # 例如，在Windows系统中使用宋体
-if not os.path.exists(font_path):
-    st.error("字体文件路径不正确，请检查并更改为有效路径")
-else:
-    font = FontProperties(fname=font_path)  # 加载字体文件
+# 检查字体是否可用
+rcParams['font.sans-serif'] = ['SimHei'] 
+rcParams['axes.unicode_minus'] = False
 
     # Streamlit应用程序标题
     st.title("篮球比赛预测模拟器")
