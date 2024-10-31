@@ -5,11 +5,39 @@ from matplotlib.font_manager import FontProperties
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
+from matplotlib import font_manager as fm
+import streamlit as st
 
-# 检查字体是否可用
-rcParams['font.sans-serif'] = ['SimHei'] 
-rcParams['axes.unicode_minus'] = False
+# 检查系统中所有可用字体
+available_fonts = [f.name for f in fm.fontManager.ttflist]
+
+# Function to find a suitable font
+def get_suitable_font():
+    fonts_to_try = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'STHeiti']  # 确保包含多种常见中文字体选择
+    for font in fonts_to_try:
+        if font in available_fonts:
+            return font
+    return None
+
+# 使用找到的适合字体来设置为默认
+suitable_font = get_suitable_font()
+if suitable_font:
+    plt.rcParams['font.family'] = suitable_font
+else:
+    st.error("无法找到可用于中文显示的字体。请安装适当的中字体。")
+
+# 确保正确显示负号
+plt.rcParams['axes.unicode_minus'] = False
+
+# 你可以开始使用matplotlib绘图
+fig, ax = plt.subplots()
+data = [20, 34, 30, 35, 27]
+ax.bar(range(len(data)), data)
+ax.set_title("示例图表")
+ax.set_xlabel("类别")
+ax.set_ylabel("值")
+
+st.pyplot(fig)
 
     # Streamlit应用程序标题
     st.title("篮球比赛预测模拟器")
