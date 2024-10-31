@@ -60,7 +60,7 @@ odds_home_team = st.sidebar.number_input("主队让分赔率", value=1.90, forma
 odds_away_team = st.sidebar.number_input("客队让分赔率", value=1.90, format="%.2f")
 
 # 模拟次数
-num_simulations = 700000
+num_simulations = 1500000
 
 # 使用泊松分布模型进行模拟得分
 if use_quarter_scores:
