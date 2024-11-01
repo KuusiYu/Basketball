@@ -3,6 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm
 import pandas as pd
+import streamlit as st
+
+# Example usage
+st.header("预测结果仅供参考")
+st.write("请通过正规渠道购买，合理安排。")
 
 # 检查系统中所有可用字体
 available_fonts = [f.name for f in fm.fontManager.ttflist]
