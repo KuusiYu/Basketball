@@ -73,23 +73,15 @@ num_simulations = 7500000
 if use_quarter_scores:
     home_q1_scores = np.random.normal(loc=home_q1_for, scale=5.0, size=num_simulations).clip(0)
     away_q1_scores = np.random.normal(loc=away_q1_for, scale=5.0, size=num_simulations).clip(0)
-    home_q1_against_scores = np.random.normal(loc=home_q1_against, scale=5.0, size=num_simulations).clip(0)
-    away_q1_against_scores = np.random.normal(loc=away_q1_against, scale=5.0, size=num_simulations).clip(0)
 
     home_q2_scores = np.random.normal(loc=home_q2_for, scale=5.0, size=num_simulations).clip(0)
     away_q2_scores = np.random.normal(loc=away_q2_for, scale=5.0, size=num_simulations).clip(0)
-    home_q2_against_scores = np.random.normal(loc=home_q2_against, scale=5.0, size=num_simulations).clip(0)
-    away_q2_against_scores = np.random.normal(loc=away_q2_against, scale=5.0, size=num_simulations).clip(0)
 
     home_q3_scores = np.random.normal(loc=home_q3_for, scale=5.0, size=num_simulations).clip(0)
     away_q3_scores = np.random.normal(loc=away_q3_for, scale=5.0, size=num_simulations).clip(0)
-    home_q3_against_scores = np.random.normal(loc=home_q3_against, scale=5.0, size=num_simulations).clip(0)
-    away_q3_against_scores = np.random.normal(loc=away_q3_against, scale=5.0, size=num_simulations).clip(0)
 
     home_q4_scores = np.random.normal(loc=home_q4_for, scale=5.0, size=num_simulations).clip(0)
     away_q4_scores = np.random.normal(loc=away_q4_for, scale=5.0, size=num_simulations).clip(0)
-    home_q4_against_scores = np.random.normal(loc=home_q4_against, scale=5.0, size=num_simulations).clip(0)
-    away_q4_against_scores = np.random.normal(loc=away_q4_against, scale=5.0, size=num_simulations).clip(0)
 
     home_team_scores = home_q1_scores + home_q2_scores + home_q3_scores + home_q4_scores
     away_team_scores = away_q1_scores + away_q2_scores + away_q3_scores + away_q4_scores
@@ -126,10 +118,23 @@ def calculate_kelly(probability, odds):
     b = odds - 1
     return (b * probability - q) / b if b > 0 else 0
 
+# 添加调试输出
+st.write("调试信息:")
+st.write(f"主队赢得让分概率: {spread_hits_home_team / num_simulations:.4f}")
+st.write(f"客队赢得让分概率: {spread_hits_away_team / num_simulations:.4f}")
+st.write(f"大分概率: {over_hits / num_simulations:.4f}")
+st.write(f"小分概率: {under_hits / num_simulations:.4f}")
+
 kelly_spread_home = calculate_kelly(spread_hits_home_team / num_simulations, odds_spread_home)
 kelly_spread_away = calculate_kelly(spread_hits_away_team / num_simulations, odds_spread_away)
 kelly_over = calculate_kelly(over_hits / num_simulations, odds_over)
 kelly_under = calculate_kelly(under_hits / num_simulations, odds_under)
+
+# 调试凯利指数和赔率
+st.write(f"主队赢得让分的赔率: {odds_spread_home}")
+st.write(f"客队赢得让分的赔率: {odds_spread_away}")
+st.write(f"大分赔率: {odds_over}")
+st.write(f"小分赔率: {odds_under}")
 
 st.header("凯利指数分析")
 st.write(f"主队赢得让分的凯利指数: {kelly_spread_home:.4f}")
@@ -164,8 +169,6 @@ if use_quarter_scores:
         '节次': ['第一节', '第二节', '第三节', '第四节'],
         '主队得分': [np.mean(home_q1_scores), np.mean(home_q2_scores), np.mean(home_q3_scores), np.mean(home_q4_scores)],
         '客队得分': [np.mean(away_q1_scores), np.mean(away_q2_scores), np.mean(away_q3_scores), np.mean(away_q4_scores)],
-        '主队失分': [np.mean(home_q1_against_scores), np.mean(home_q2_against_scores), np.mean(home_q3_against_scores), np.mean(home_q4_against_scores)],
-        '客队失分': [np.mean(away_q1_against_scores), np.mean(away_q2_against_scores), np.mean(away_q3_against_scores), np.mean(away_q4_against_scores)],
         '得分差': [np.mean(home_q1_scores) - np.mean(away_q1_scores),
                   np.mean(home_q2_scores) - np.mean(away_q2_scores),
                   np.mean(home_q3_scores) - np.mean(away_q3_scores),
