@@ -6,7 +6,7 @@ import pandas as pd
 
 # Example usage
 st.header("预测结果仅供参考")
-st.write("请通过正规渠道购买，合理安排。")
+st.write("请通过正规渠道购买，合理安排，否则后果自负！")
 
 # 检查系统中所有可用字体
 available_fonts = [f.name for f in fm.fontManager.ttflist]
