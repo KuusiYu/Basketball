@@ -13,7 +13,7 @@ available_fonts = [f.name for f in fm.fontManager.ttflist]
 
 # Function to find a suitable font
 def get_suitable_font():
-    fonts_to_try = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'STHeiti']  # 常见中文字体选择
+    fonts_to_try = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'STHeiti']
     for font in fonts_to_try:
         if font in available_fonts:
             return font
@@ -40,7 +40,6 @@ use_quarter_scores = st.sidebar.checkbox("使用各节得分和失分进行预�
 
 # 输入各节得分与失分
 if use_quarter_scores:
-    # 输入每节的平均得分和失分
     home_q1_for = st.sidebar.number_input("主队第一节平均得分", value=26.0, format="%.2f")
     away_q1_for = st.sidebar.number_input("客队第一节平均得分", value=25.0, format="%.2f")
     home_q1_against = st.sidebar.number_input("主队第一节平均失分", value=25.0, format="%.2f")
@@ -72,7 +71,6 @@ num_simulations = 7500000
 
 # 使用蒙特卡罗模拟生成得分
 if use_quarter_scores:
-    # 对每节进行蒙特卡罗模拟，假设每节得分符合正态分布
     home_q1_scores = np.random.normal(loc=home_q1_for, scale=5.0, size=num_simulations).clip(0)
     away_q1_scores = np.random.normal(loc=away_q1_for, scale=5.0, size=num_simulations).clip(0)
     home_q1_against_scores = np.random.normal(loc=home_q1_against, scale=5.0, size=num_simulations).clip(0)
@@ -93,17 +91,14 @@ if use_quarter_scores:
     home_q4_against_scores = np.random.normal(loc=home_q4_against, scale=5.0, size=num_simulations).clip(0)
     away_q4_against_scores = np.random.normal(loc=away_q4_against, scale=5.0, size=num_simulations).clip(0)
 
-    # 合并四节得分
     home_team_scores = home_q1_scores + home_q2_scores + home_q3_scores + home_q4_scores
     away_team_scores = away_q1_scores + away_q2_scores + away_q3_scores + away_q4_scores
 else:
     home_team_scores = np.random.poisson(home_team_avg_points_for, num_simulations)
     away_team_scores = np.random.poisson(away_team_avg_points_for, num_simulations)
 
-# 计算总得分
 total_scores = home_team_scores + away_team_scores
 
-# 计算统计数据
 home_team_wins = np.sum(home_team_scores > away_team_scores)
 away_team_wins = np.sum(home_team_scores < away_team_scores)
 over_hits = np.sum(total_scores > over_under_line)
@@ -116,16 +111,35 @@ average_away_team_score = np.mean(away_team_scores)
 average_total_score = np.mean(total_scores)
 average_score_diff = average_home_team_score - average_away_team_score
 
-# 加时概率
 overtime_threshold = 0.5
 potential_overtimes = np.sum(abs(home_team_scores - away_team_scores) < overtime_threshold)
 overtime_probability = potential_overtimes / num_simulations
 
-# 打印结果
+st.sidebar.header("赔率设置")
+odds_spread_home = st.sidebar.slider("让分赔率 (主队赢)", min_value=1.01, max_value=3.0, value=1.90, step=0.01)
+odds_spread_away = st.sidebar.slider("让分赔率 (客队赢)", min_value=1.01, max_value=3.0, value=1.90, step=0.01)
+odds_over = st.sidebar.slider("大分赔率", min_value=1.01, max_value=3.0, value=1.90, step=0.01)
+odds_under = st.sidebar.slider("小分赔率", min_value=1.01, max_value=3.0, value=1.90, step=0.01)
+
+def calculate_kelly(probability, odds):
+    q = 1 - probability
+    b = odds - 1
+    return (b * probability - q) / b if b > 0 else 0
+
+kelly_spread_home = calculate_kelly(spread_hits_home_team / num_simulations, odds_spread_home)
+kelly_spread_away = calculate_kelly(spread_hits_away_team / num_simulations, odds_spread_away)
+kelly_over = calculate_kelly(over_hits / num_simulations, odds_over)
+kelly_under = calculate_kelly(under_hits / num_simulations, odds_under)
+
+st.header("凯利指数分析")
+st.write(f"主队赢得让分的凯利指数: {kelly_spread_home:.4f}")
+st.write(f"客队赢得让分的凯利指数: {kelly_spread_away:.4f}")
+st.write(f"大分的凯利指数: {kelly_over:.4f}")
+st.write(f"小分的凯利指数: {kelly_under:.4f}")
+
 st.header("比赛结果统计")
 col1, col2 = st.columns(2)
 
-# 输出主队和客队的胜率
 with col1:
     if use_quarter_scores:
         st.subheader("使用各节得分预测结果")
@@ -136,7 +150,6 @@ with col1:
     st.write(f"大于大小分的概率: {over_hits / num_simulations * 100:.2f}%")
     st.write(f"小于大小分的概率: {under_hits / num_simulations * 100:.2f}%")
 
-# 输出让分统计
 with col2:
     st.write(f"主队赢得让分的概率: {spread_hits_home_team / num_simulations * 100:.2f}%")
     st.write(f"客队赢得让分的概率: {spread_hits_away_team / num_simulations * 100:.2f}%")
@@ -146,7 +159,6 @@ with col2:
     st.write(f"总得分平均值: {average_total_score:.2f}")
     st.write(f"主队和客队平均得分差异: {average_score_diff:.2f}")
 
-# 各节得分与失分表格
 if use_quarter_scores:
     quarter_scores_df = pd.DataFrame({
         '节次': ['第一节', '第二节', '第三节', '第四节'],
@@ -157,18 +169,19 @@ if use_quarter_scores:
         '得分差': [np.mean(home_q1_scores) - np.mean(away_q1_scores),
                   np.mean(home_q2_scores) - np.mean(away_q2_scores),
                   np.mean(home_q3_scores) - np.mean(away_q3_scores),
-                  np.mean(home_q4_scores) - np.mean(away_q4_scores)]
+                  np.mean(home_q4_scores) - np.mean(away_q4_scores)],
+        '总得分': [np.mean(home_q1_scores + away_q1_scores),
+                 np.mean(home_q2_scores + away_q2_scores),
+                 np.mean(home_q3_scores + away_q3_scores),
+                 np.mean(home_q4_scores + away_q4_scores)]
     })
-
-    # 输出各节得分与失分统计
+    
     st.subheader("各节得分与失分统计")
     st.write(quarter_scores_df)
 
-# 可视化各节比赛得分与失分
 if use_quarter_scores:
     fig, axs = plt.subplots(2, 2, figsize=(12, 10))
 
-    # 第一节
     axs[0, 0].hist(home_q1_scores, bins=30, alpha=0.5, color='blue', label='主队得分')
     axs[0, 0].hist(away_q1_scores, bins=30, alpha=0.5, color='red', label='客队得分')
     axs[0, 0].set_title('第一节得分分布')
@@ -176,7 +189,6 @@ if use_quarter_scores:
     axs[0, 0].set_ylabel('频率')
     axs[0, 0].legend()
 
-    # 第二节
     axs[0, 1].hist(home_q2_scores, bins=30, alpha=0.5, color='blue', label='主队得分')
     axs[0, 1].hist(away_q2_scores, bins=30, alpha=0.5, color='red', label='客队得分')
     axs[0, 1].set_title('第二节得分分布')
@@ -184,7 +196,6 @@ if use_quarter_scores:
     axs[0, 1].set_ylabel('频率')
     axs[0, 1].legend()
 
-    # 第三节
     axs[1, 0].hist(home_q3_scores, bins=30, alpha=0.5, color='blue', label='主队得分')
     axs[1, 0].hist(away_q3_scores, bins=30, alpha=0.5, color='red', label='客队得分')
     axs[1, 0].set_title('第三节得分分布')
@@ -192,7 +203,6 @@ if use_quarter_scores:
     axs[1, 0].set_ylabel('频率')
     axs[1, 0].legend()
 
-    # 第四节
     axs[1, 1].hist(home_q4_scores, bins=30, alpha=0.5, color='blue', label='主队得分')
     axs[1, 1].hist(away_q4_scores, bins=30, alpha=0.5, color='red', label='客队得分')
     axs[1, 1].set_title('第四节得分分布')
@@ -203,7 +213,6 @@ if use_quarter_scores:
     plt.tight_layout()
     st.pyplot(fig)
 
-# 总得分的直方图
 fig, ax = plt.subplots()
 ax.hist(total_scores, bins=30, alpha=0.5, label='总得分')
 ax.axvline(x=over_under_line, color='r', linestyle='dashed', linewidth=2, label='大小分线')
@@ -214,7 +223,6 @@ ax.set_title('篮球比赛的蒙特卡洛模拟')
 ax.legend(loc='upper right')
 st.pyplot(fig)
 
-# 可视化得分差异
 fig, ax = plt.subplots()
 score_diff = home_team_scores - away_team_scores
 ax.hist(score_diff, bins=30, alpha=0.5, label='得分差异 (主队 - 客队)')
