@@ -113,6 +113,9 @@ odds_spread_away = st.sidebar.slider("让分赔率 (客队赢)", min_value=1.01,
 odds_over = st.sidebar.slider("大分赔率", min_value=1.01, max_value=3.0, value=1.90, step=0.01)
 odds_under = st.sidebar.slider("小分赔率", min_value=1.01, max_value=3.0, value=1.90, step=0.01)
 
+# 本金输入
+initial_capital = st.sidebar.number_input("请输入您的本金（用于计算潜在收益）", min_value=0.0, value=1000.0, step=0.01, format="%.2f")
+
 def calculate_kelly(probability, odds):
     q = 1 - probability
     b = odds - 1
@@ -123,12 +126,35 @@ kelly_spread_away = calculate_kelly(spread_hits_away_team / num_simulations, odd
 kelly_over = calculate_kelly(over_hits / num_simulations, odds_over)
 kelly_under = calculate_kelly(under_hits / num_simulations, odds_under)
 
-# 解析凯利指数和赔率
+# 计算建议的投注金额
+bet_amount_home_spread = initial_capital * kelly_spread_home
+bet_amount_aw_spellay = initial_capital * kelly_spread_away
+bet_amount_over = initial_capital * kelly_over
+bet_amount_under = initial_capital * kelly_under
+
+# 预测潜在收益
+potential_return_home_spread = bet_amount_home_spread * odds_spread_home
+potential_return_away_spread = bet_amount_aw_spellay * odds_spread_away
+potential_return_over = bet_amount_over * odds_over
+potential_return_under = bet_amount_under * odds_under
+
+# 显示凯利指数、建议的投注金额和潜在收益
 st.header("凯利指数分析『凯利指数越小，代表越值得投注，负数代表不要投注。』")
 st.write(f"主队赢得让分的凯利指数: {kelly_spread_home:.4f}")
+st.write(f"建议投注金额: {bet_amount_home_spread:.2f}")
+st.write(f"潜在收益: {potential_return_home_spread:.2f}")
+
 st.write(f"客队赢得让分的凯利指数: {kelly_spread_away:.4f}")
+st.write(f"建议投注金额: {bet_amount_aw_spellay:.2f}")
+st.write(f"潜在收益: {potential_return_away_spread:.2f}")
+
 st.write(f"大分的凯利指数: {kelly_over:.4f}")
+st.write(f"建议投注金额: {bet_amount_over:.2f}")
+st.write(f"潜在收益: {potential_return_over:.2f}")
+
 st.write(f"小分的凯利指数: {kelly_under:.4f}")
+st.write(f"建议投注金额: {bet_amount_under:.2f}")
+st.write(f"潜在收益: {potential_return_under:.2f}")
 
 st.header("比赛结果统计")
 col1, col2 = st.columns(2)
