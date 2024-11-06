@@ -11,7 +11,6 @@ st.write("请通过正规渠道购买，合理安排，否则后果自负！")
 # 检查系统中所有可用字体
 available_fonts = [f.name for f in fm.fontManager.ttflist]
 
-# Function to find a suitable font
 def get_suitable_font():
     fonts_to_try = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'STHeiti']
     for font in fonts_to_try:
@@ -19,26 +18,21 @@ def get_suitable_font():
             return font
     return None
 
-# 使用找到的适合字体设置为默认
 suitable_font = get_suitable_font()
 if suitable_font:
     plt.rcParams['font.family'] = suitable_font
 else:
     st.error("无法找到用于中文显示的字体。请安装适当的中文字体。")
 
-# 确保正确显示负号
 plt.rcParams['axes.unicode_minus'] = False
 
-# 主队和客队整体平均得分与失分
 home_team_avg_points_for = st.sidebar.number_input("主队近期场均得分", value=105.0, format="%.2f")
 home_team_avg_points_against = st.sidebar.number_input("主队近期场均失分", value=99.0, format="%.2f")
 away_team_avg_points_for = st.sidebar.number_input("客队近期场均得分", value=102.0, format="%.2f")
 away_team_avg_points_against = st.sidebar.number_input("客队近期场均失分", value=101.0, format="%.2f")
 
-# 允许输入节平均得分与失分
 use_quarter_scores = st.sidebar.checkbox("使用各节得分和失分进行预测", value=True)
 
-# 输入各节得分与失分
 if use_quarter_scores:
     home_q1_for = st.sidebar.number_input("主队第一节平均得分", value=26.0, format="%.2f")
     away_q1_for = st.sidebar.number_input("客队第一节平均得分", value=25.0, format="%.2f")
@@ -64,24 +58,32 @@ else:
     home_q1_against = away_q1_against = home_q2_against = away_q2_against = home_q3_against = away_q3_against = home_q4_against = away_q4_against = 0
 
 over_under_line = st.sidebar.number_input("大小分", value=210.5, format="%.2f")
-spread = st.sidebar.number_input("让分 (主队让分)", value=-5.5, format="%.2f")
+spread = st.sidebar.number_input("让分 (主队让分，输入正数为受让)", value=-5.5, format="%.2f")
 
 # 模拟次数
-num_simulations = 750000
+num_simulations = 7500000
 
-# 使用蒙特卡罗模拟生成得分
+# 使用蒙特卡罗模拟生成得分和失分
 if use_quarter_scores:
     home_q1_scores = np.random.normal(loc=home_q1_for, scale=5.0, size=num_simulations).clip(0)
     away_q1_scores = np.random.normal(loc=away_q1_for, scale=5.0, size=num_simulations).clip(0)
+    home_q1_against_scores = np.random.normal(loc=home_q1_against, scale=5.0, size=num_simulations).clip(0)
+    away_q1_against_scores = np.random.normal(loc=away_q1_against, scale=5.0, size=num_simulations).clip(0)
 
     home_q2_scores = np.random.normal(loc=home_q2_for, scale=5.0, size=num_simulations).clip(0)
     away_q2_scores = np.random.normal(loc=away_q2_for, scale=5.0, size=num_simulations).clip(0)
+    home_q2_against_scores = np.random.normal(loc=home_q2_against, scale=5.0, size=num_simulations).clip(0)
+    away_q2_against_scores = np.random.normal(loc=away_q2_against, scale=5.0, size=num_simulations).clip(0)
 
     home_q3_scores = np.random.normal(loc=home_q3_for, scale=5.0, size=num_simulations).clip(0)
     away_q3_scores = np.random.normal(loc=away_q3_for, scale=5.0, size=num_simulations).clip(0)
+    home_q3_against_scores = np.random.normal(loc=home_q3_against, scale=5.0, size=num_simulations).clip(0)
+    away_q3_against_scores = np.random.normal(loc=away_q3_against, scale=5.0, size=num_simulations).clip(0)
 
     home_q4_scores = np.random.normal(loc=home_q4_for, scale=5.0, size=num_simulations).clip(0)
     away_q4_scores = np.random.normal(loc=away_q4_for, scale=5.0, size=num_simulations).clip(0)
+    home_q4_against_scores = np.random.normal(loc=home_q4_against, scale=5.0, size=num_simulations).clip(0)
+    away_q4_against_scores = np.random.normal(loc=away_q4_against, scale=5.0, size=num_simulations).clip(0)
 
     home_team_scores = home_q1_scores + home_q2_scores + home_q3_scores + home_q4_scores
     away_team_scores = away_q1_scores + away_q2_scores + away_q3_scores + away_q4_scores
@@ -126,42 +128,37 @@ kelly_spread_away = calculate_kelly(spread_hits_away_team / num_simulations, odd
 kelly_over = calculate_kelly(over_hits / num_simulations, odds_over)
 kelly_under = calculate_kelly(under_hits / num_simulations, odds_under)
 
-# 计算建议的投注金额
-bet_amount_home_spread = initial_capital * kelly_spread_home
-bet_amount_aw_spellay = initial_capital * kelly_spread_away
-bet_amount_over = initial_capital * kelly_over
-bet_amount_under = initial_capital * kelly_under
+bet_amount_home_spread = initial_capital * max(kelly_spread_home, 0)
+bet_amount_aw_spellay = initial_capital * max(kelly_spread_away, 0)
+bet_amount_over = initial_capital * max(kelly_over, 0)
+bet_amount_under = initial_capital * max(kelly_under, 0)
 
-# 预测潜在收益
 potential_return_home_spread = bet_amount_home_spread * odds_spread_home
 potential_return_away_spread = bet_amount_aw_spellay * odds_spread_away
 potential_return_over = bet_amount_over * odds_over
 potential_return_under = bet_amount_under * odds_under
 
-# 显示凯利指数、建议的投注金额和潜在收益
 st.header("凯利指数分析『凯利指数越小，代表越值得投注，负数代表不要投注。』")
-st.write(f"主队赢得让分的凯利指数: {kelly_spread_home:.4f}")
-st.write(f"建议投注金额: {bet_amount_home_spread:.2f}")
-st.write(f"潜在收益: {potential_return_home_spread:.2f}")
 
-st.write(f"客队赢得让分的凯利指数: {kelly_spread_away:.4f}")
-st.write(f"建议投注金额: {bet_amount_aw_spellay:.2f}")
-st.write(f"潜在收益: {potential_return_away_spread:.2f}")
+def display_bet_info(description, kelly_value, bet_amount, potential_return):
+    st.write(f"{description}的凯利指数: {kelly_value:.4f}")
+    if kelly_value > 0:
+        st.write(f"建议投注金额: {bet_amount:.2f}")
+        st.write(f"潜在收益: {potential_return:.2f}")
+    else:
+        st.write("不建议投注")
 
-st.write(f"大分的凯利指数: {kelly_over:.4f}")
-st.write(f"建议投注金额: {bet_amount_over:.2f}")
-st.write(f"潜在收益: {potential_return_over:.2f}")
-
-st.write(f"小分的凯利指数: {kelly_under:.4f}")
-st.write(f"建议投注金额: {bet_amount_under:.2f}")
-st.write(f"潜在收益: {potential_return_under:.2f}")
+display_bet_info("主队赢得让分", kelly_spread_home, bet_amount_home_spread, potential_return_home_spread)
+display_bet_info("客队赢得让分", kelly_spread_away, bet_amount_aw_spellay, potential_return_away_spread)
+display_bet_info("大分", kelly_over, bet_amount_over, potential_return_over)
+display_bet_info("小分", kelly_under, bet_amount_under, potential_return_under)
 
 st.header("比赛结果统计")
 col1, col2 = st.columns(2)
 
 with col1:
     if use_quarter_scores:
-        st.subheader("使用各节得分预测结果")
+        st.subheader("使用各节得分和失分预测结果")
     else:
         st.subheader("使用整体得分预测结果")
     st.write(f"主队获胜概率: {home_team_wins / num_simulations * 100:.2f}%")
@@ -179,22 +176,67 @@ with col2:
     st.write(f"主队和客队平均得分差异: {average_score_diff:.2f}")
 
 if use_quarter_scores:
-    quarter_scores_df = pd.DataFrame({
-        '节次': ['第一节', '第二节', '第三节', '第四节'],
-        '主队得分': [np.mean(home_q1_scores), np.mean(home_q2_scores), np.mean(home_q3_scores), np.mean(home_q4_scores)],
-        '客队得分': [np.mean(away_q1_scores), np.mean(away_q2_scores), np.mean(away_q3_scores), np.mean(away_q4_scores)],
-        '得分差': [np.mean(home_q1_scores) - np.mean(away_q1_scores),
-                  np.mean(home_q2_scores) - np.mean(away_q2_scores),
-                  np.mean(home_q3_scores) - np.mean(away_q3_scores),
-                  np.mean(home_q4_scores) - np.mean(away_q4_scores)],
-        '总得分': [np.mean(home_q1_scores + away_q1_scores),
-                 np.mean(home_q2_scores + away_q2_scores),
-                 np.mean(home_q3_scores + away_q3_scores),
-                 np.mean(home_q4_scores + away_q4_scores)]
-    })
-    
+    quarter_data = {
+        '第1节': {
+            '主队得分': np.mean(home_q1_scores),
+            '客队得分': np.mean(away_q1_scores),
+            '主队失分': np.mean(home_q1_against_scores),
+            '客队失分': np.mean(away_q1_against_scores),
+            '得分差': np.mean(home_q1_scores) - np.mean(away_q1_scores),
+            '总得分': np.mean(home_q1_scores + away_q1_scores)
+        },
+        '第2节': {
+            '主队得分': np.mean(home_q2_scores),
+            '客队得分': np.mean(away_q2_scores),
+            '主队失分': np.mean(home_q2_against_scores),
+            '客队失分': np.mean(away_q2_against_scores),
+            '得分差': np.mean(home_q2_scores) - np.mean(away_q2_scores),
+            '总得分': np.mean(home_q2_scores + away_q2_scores)
+        },
+        '第3节': {
+            '主队得分': np.mean(home_q3_scores),
+            '客队得分': np.mean(away_q3_scores),
+            '主队失分': np.mean(home_q3_against_scores),
+            '客队失分': np.mean(away_q3_against_scores),
+            '得分差': np.mean(home_q3_scores) - np.mean(away_q3_scores),
+            '总得分': np.mean(home_q3_scores + away_q3_scores)
+        },
+        '第4节': {
+            '主队得分': np.mean(home_q4_scores),
+            '客队得分': np.mean(away_q4_scores),
+            '主队失分': np.mean(home_q4_against_scores),
+            '客队失分': np.mean(away_q4_against_scores),
+            '得分差': np.mean(home_q4_scores) - np.mean(away_q4_scores),
+            '总得分': np.mean(home_q4_scores + away_q4_scores)
+        }
+    }
+
+    quarter_scores_df = pd.DataFrame(quarter_data)
+
+    def highlight(s):
+        if s.name in ['主队得分', '客队得分']:
+            is_max = s == s.max()
+            return ['background-color: pink' if v else '' for v in is_max]
+        elif s.name in ['主队失分', '客队失分']:
+            is_min = s == s.max()
+            return ['background-color: lightgreen' if v else '' for v in is_min]
+        else:
+            return ['' for _ in s]
+
     st.subheader("各节得分与失分统计")
-    st.write(quarter_scores_df)
+    styled_df = quarter_scores_df.style.apply(highlight, axis=1)
+    st.dataframe(styled_df)
+
+    # 找到得分最高和失分最多的节次
+    highest_scoring_quarter_home = quarter_scores_df.loc['主队得分'].idxmax()
+    highest_scoring_quarter_away = quarter_scores_df.loc['客队得分'].idxmax()
+    highest_conceding_quarter_home = quarter_scores_df.loc['主队失分'].idxmax()
+    highest_conceding_quarter_away = quarter_scores_df.loc['客队失分'].idxmax()
+
+    st.write(f"主队得分最高的节是{highest_scoring_quarter_home}")
+    st.write(f"客队得分最高的节是{highest_scoring_quarter_away}")
+    st.write(f"主队失分最多的节是{highest_conceding_quarter_home}")
+    st.write(f"客队失分最多的节是{highest_conceding_quarter_away}")
 
 if use_quarter_scores:
     fig, axs = plt.subplots(2, 2, figsize=(12, 10))
