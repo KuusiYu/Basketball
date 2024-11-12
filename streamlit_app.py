@@ -26,11 +26,18 @@ else:
 
 plt.rcParams['axes.unicode_minus'] = False
 
+# 主队和客队的输入
 home_team_avg_points_for = st.sidebar.number_input("主队近期场均得分", value=105.0, format="%.2f")
 home_team_avg_points_against = st.sidebar.number_input("主队近期场均失分", value=99.0, format="%.2f")
 away_team_avg_points_for = st.sidebar.number_input("客队近期场均得分", value=102.0, format="%.2f")
 away_team_avg_points_against = st.sidebar.number_input("客队近期场均失分", value=101.0, format="%.2f")
 
+# 新增输入项：球员BPM值
+home_team_bpm = st.sidebar.number_input("主队核心球员BPM值", value=2.0, format="%.2f")
+away_team_bpm = st.sidebar.number_input("客队核心球员BPM值", value=1.0, format="%.2f")
+
+# 输入各节得分与失分，放在右侧
+st.sidebar.header("各节得分与失分输入")
 use_quarter_scores = st.sidebar.checkbox("使用各节得分和失分进行预测", value=True)
 
 if use_quarter_scores:
@@ -57,39 +64,57 @@ else:
     home_q1_for = away_q1_for = home_q2_for = away_q2_for = home_q3_for = away_q3_for = home_q4_for = away_q4_for = 0
     home_q1_against = away_q1_against = home_q2_against = away_q2_against = home_q3_against = away_q3_against = home_q4_against = away_q4_against = 0
 
+# 新增输入项：是否为杯赛
+is_cup_match = st.sidebar.checkbox("是否为杯赛", value=False)
+
+# 新增输入项：每节的分钟数
+minutes_per_quarter = st.sidebar.selectbox("每节分钟数", [10, 12], index=1)
+
 over_under_line = st.sidebar.number_input("大小分", value=210.5, format="%.2f")
 spread = st.sidebar.number_input("让分 (主队让分，输入正数为受让)", value=-5.5, format="%.2f")
 
 # 模拟次数
-num_simulations = 750000
+num_simulations = 7500000
+
+# 计算换算比例
+actual_minutes_per_quarter = 12  # 假设当前数据基于12分钟一节
+scaling_factor = minutes_per_quarter / actual_minutes_per_quarter
 
 # 使用蒙特卡罗模拟生成得分和失分
 if use_quarter_scores:
-    home_q1_scores = np.random.normal(loc=home_q1_for, scale=5.0, size=num_simulations).clip(0)
-    away_q1_scores = np.random.normal(loc=away_q1_for, scale=5.0, size=num_simulations).clip(0)
-    home_q1_against_scores = np.random.normal(loc=home_q1_against, scale=5.0, size=num_simulations).clip(0)
-    away_q1_against_scores = np.random.normal(loc=away_q1_against, scale=5.0, size=num_simulations).clip(0)
+    home_q1_scores = np.random.normal(loc=(home_q1_for + home_team_bpm) * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    away_q1_scores = np.random.normal(loc=(away_q1_for + away_team_bpm) * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    home_q1_against_scores = np.random.normal(loc=home_q1_against * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    away_q1_against_scores = np.random.normal(loc=away_q1_against * scaling_factor, scale=5.0, size=num_simulations).clip(0)
 
-    home_q2_scores = np.random.normal(loc=home_q2_for, scale=5.0, size=num_simulations).clip(0)
-    away_q2_scores = np.random.normal(loc=away_q2_for, scale=5.0, size=num_simulations).clip(0)
-    home_q2_against_scores = np.random.normal(loc=home_q2_against, scale=5.0, size=num_simulations).clip(0)
-    away_q2_against_scores = np.random.normal(loc=away_q2_against, scale=5.0, size=num_simulations).clip(0)
+    home_q2_scores = np.random.normal(loc=(home_q2_for + home_team_bpm) * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    away_q2_scores = np.random.normal(loc=(away_q2_for + away_team_bpm) * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    home_q2_against_scores = np.random.normal(loc=home_q2_against * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    away_q2_against_scores = np.random.normal(loc=away_q2_against * scaling_factor, scale=5.0, size=num_simulations).clip(0)
 
-    home_q3_scores = np.random.normal(loc=home_q3_for, scale=5.0, size=num_simulations).clip(0)
-    away_q3_scores = np.random.normal(loc=away_q3_for, scale=5.0, size=num_simulations).clip(0)
-    home_q3_against_scores = np.random.normal(loc=home_q3_against, scale=5.0, size=num_simulations).clip(0)
-    away_q3_against_scores = np.random.normal(loc=away_q3_against, scale=5.0, size=num_simulations).clip(0)
+    home_q3_scores = np.random.normal(loc=(home_q3_for + home_team_bpm) * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    away_q3_scores = np.random.normal(loc=(away_q3_for + away_team_bpm) * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    home_q3_against_scores = np.random.normal(loc=home_q3_against * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    away_q3_against_scores = np.random.normal(loc=away_q3_against * scaling_factor, scale=5.0, size=num_simulations).clip(0)
 
-    home_q4_scores = np.random.normal(loc=home_q4_for, scale=5.0, size=num_simulations).clip(0)
-    away_q4_scores = np.random.normal(loc=away_q4_for, scale=5.0, size=num_simulations).clip(0)
-    home_q4_against_scores = np.random.normal(loc=home_q4_against, scale=5.0, size=num_simulations).clip(0)
-    away_q4_against_scores = np.random.normal(loc=away_q4_against, scale=5.0, size=num_simulations).clip(0)
+    home_q4_scores = np.random.normal(loc=(home_q4_for + home_team_bpm) * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    away_q4_scores = np.random.normal(loc=(away_q4_for + away_team_bpm) * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    home_q4_against_scores = np.random.normal(loc=home_q4_against * scaling_factor, scale=5.0, size=num_simulations).clip(0)
+    away_q4_against_scores = np.random.normal(loc=away_q4_against * scaling_factor, scale=5.0, size=num_simulations).clip(0)
 
     home_team_scores = home_q1_scores + home_q2_scores + home_q3_scores + home_q4_scores
     away_team_scores = away_q1_scores + away_q2_scores + away_q3_scores + away_q4_scores
 else:
-    home_team_scores = np.random.poisson(home_team_avg_points_for, num_simulations)
-    away_team_scores = np.random.poisson(away_team_avg_points_for, num_simulations)
+    home_bpm_adjusted = home_team_avg_points_for + home_team_bpm
+    away_bpm_adjusted = away_team_avg_points_for + away_team_bpm
+    home_team_scores = np.random.poisson(home_bpm_adjusted * scaling_factor, num_simulations)
+    away_team_scores = np.random.poisson(away_bpm_adjusted * scaling_factor, num_simulations)
+
+# 根据是否为杯赛调整得分
+if is_cup_match:
+    # 假设强队故意输球的概率调整
+    home_team_scores *= (1 - 0.1)  # 假设强队输球的概率10%
+    away_team_scores *= (1 + 0.1)  # 假设弱队赢球的概率10%
 
 total_scores = home_team_scores + away_team_scores
 
@@ -129,16 +154,16 @@ kelly_over = calculate_kelly(over_hits / num_simulations, odds_over)
 kelly_under = calculate_kelly(under_hits / num_simulations, odds_under)
 
 bet_amount_home_spread = initial_capital * max(kelly_spread_home, 0)
-bet_amount_aw_spellay = initial_capital * max(kelly_spread_away, 0)
+bet_amount_away_spread = initial_capital * max(kelly_spread_away, 0)
 bet_amount_over = initial_capital * max(kelly_over, 0)
 bet_amount_under = initial_capital * max(kelly_under, 0)
 
 potential_return_home_spread = bet_amount_home_spread * odds_spread_home
-potential_return_away_spread = bet_amount_aw_spellay * odds_spread_away
+potential_return_away_spread = bet_amount_away_spread * odds_spread_away
 potential_return_over = bet_amount_over * odds_over
 potential_return_under = bet_amount_under * odds_under
 
-st.header("凯利指数分析『凯利指数越小，代表越值得投注，负数代表不要投注。』")
+st.header("凯利指数分析")
 
 def display_bet_info(description, kelly_value, bet_amount, potential_return):
     st.write(f"{description}的凯利指数: {kelly_value:.4f}")
@@ -146,10 +171,10 @@ def display_bet_info(description, kelly_value, bet_amount, potential_return):
         st.write(f"建议投注金额: {bet_amount:.2f}")
         st.write(f"潜在收益: {potential_return:.2f}")
     else:
-        st.write("不建议投注")
+        st.write("不建议投注，因为凯利指数为负或零，表示这项投注没有优势")
 
 display_bet_info("主队赢得让分", kelly_spread_home, bet_amount_home_spread, potential_return_home_spread)
-display_bet_info("客队赢得让分", kelly_spread_away, bet_amount_aw_spellay, potential_return_away_spread)
+display_bet_info("客队赢得让分", kelly_spread_away, bet_amount_away_spread, potential_return_away_spread)
 display_bet_info("大分", kelly_over, bet_amount_over, potential_return_over)
 display_bet_info("小分", kelly_under, bet_amount_under, potential_return_under)
 
@@ -238,7 +263,7 @@ if use_quarter_scores:
     st.write(f"主队失分最多的节是{highest_conceding_quarter_home}")
     st.write(f"客队失分最多的节是{highest_conceding_quarter_away}")
 
-if use_quarter_scores:
+    # 绘制各节得分分布图
     fig, axs = plt.subplots(2, 2, figsize=(12, 10))
 
     axs[0, 0].hist(home_q1_scores, bins=30, alpha=0.5, color='blue', label='主队得分')
@@ -272,6 +297,7 @@ if use_quarter_scores:
     plt.tight_layout()
     st.pyplot(fig)
 
+# 总得分分布图
 fig, ax = plt.subplots()
 ax.hist(total_scores, bins=30, alpha=0.5, label='总得分')
 ax.axvline(x=over_under_line, color='r', linestyle='dashed', linewidth=2, label='大小分线')
@@ -282,6 +308,7 @@ ax.set_title('篮球比赛的蒙特卡洛模拟')
 ax.legend(loc='upper right')
 st.pyplot(fig)
 
+# 得分差异分布图
 fig, ax = plt.subplots()
 score_diff = home_team_scores - away_team_scores
 ax.hist(score_diff, bins=30, alpha=0.5, label='得分差异 (主队 - 客队)')
