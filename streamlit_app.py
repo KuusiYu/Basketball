@@ -74,7 +74,7 @@ over_under_line = st.sidebar.number_input("大小分", value=210.5, format="%.2f
 spread = st.sidebar.number_input("让分 (主队让分，输入正数为受让)", value=-5.5, format="%.2f")
 
 # 模拟次数
-num_simulations = 7500000
+num_simulations = 750000
 
 # 计算换算比例
 actual_minutes_per_quarter = 12  # 假设当前数据基于12分钟一节
