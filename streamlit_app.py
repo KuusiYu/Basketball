@@ -69,7 +69,7 @@ else:
     home_q1_against = away_q1_against = home_q2_against = away_q2_against = home_q3_against = away_q3_against = home_q4_against = away_q4_against = 0
 
 # Simulation count
-num_simulations = 7000
+num_simulations = 4000
 
 # Initialize team scores
 home_team_scores = np.zeros(num_simulations)
@@ -133,6 +133,7 @@ average_total_score = np.mean(total_scores)
 average_score_diff = average_home_team_score - average_away_team_score
 
 # 定义得分模型
+@st.cache_data
 def simulate_scores(avg_points, minute, total_minutes):
     """根据比赛阶段和随机因子模拟每30秒得分"""
     volatility = np.random.normal(loc=2, scale=1.5)  # 得分随机波动，均值为2，标准差为1.5
