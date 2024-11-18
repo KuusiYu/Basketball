@@ -69,7 +69,7 @@ else:
     home_q1_against = away_q1_against = home_q2_against = away_q2_against = home_q3_against = away_q3_against = home_q4_against = away_q4_against = 0
 
 # Simulation count
-num_simulations = 4000
+num_simulations = 3000
 
 # Initialize team scores
 home_team_scores = np.zeros(num_simulations)
