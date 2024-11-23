@@ -254,7 +254,7 @@ st.markdown(
     }
     .stButton {
         background-color: #007BFF; /* 按钮背景颜色 */
-        color: white; /* 按钮文本颜色 */
+        color: black; /* 按钮文本颜色 */
         font-size: 16px; /* 字体大小 */
     }
     .stButton:hover {
