@@ -244,23 +244,3 @@ if st.session_state.simulate:
         st.subheader("各节得分与失分统计")
         styled_df = quarter_scores_df.style.apply(highlight, axis=1)
         st.dataframe(styled_df)
-
-# 设置自定义样式
-st.markdown(
-    """
-    <style>
-    .reportview-container {
-        background-color: #EAEDEF;
-    }
-    .stButton {
-        background-color: #007BFF; /* 按钮背景颜色 */
-        color: black; /* 按钮文本颜色 */
-        font-size: 16px; /* 字体大小 */
-    }
-    .stButton:hover {
-        background-color: #0056b3; /* 鼠标悬停时的背景颜色 */
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
